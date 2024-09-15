@@ -5,6 +5,15 @@ import plotly.express as px
 import plotly.graph_objects as go
 import scipy.stats as stats
 
+# Define the URLs
+urls = {
+    "1-Star": "https://chatgpt.com/g/g-HbhbW46u4-1-star-mcc",
+    "2-Star": "https://chatgpt.com/g/g-0X9y54WjG-2-star-mcc",
+    "3-Star": "https://chatgpt.com/g/g-HFZZLEA11-3-star-mcc",
+    "4-Star": "https://chatgpt.com/g/g-bOmqZIWV3-4-star-mcc",
+    "5-Star": "https://chatgpt.com/g/g-M7qDGNCIa-5-star-mcc"
+}
+
 # App configuration
 st.set_page_config(page_title="Sonaura Demo App", layout="wide")
 
@@ -18,6 +27,13 @@ def calculate_confidence_interval(data, confidence=0.99):
 def main():
     st.title("PCA Data Analysis and Visualization Tool")
     st.text("By David Pearl and Matthew Murphy")
+
+     # Display URLs in columns
+    cols = st.columns(5)  # Create 5 equal-width columns for 5 URLs
+    for i, (name, link) in enumerate(urls.items()):
+        with cols[i]:
+            st.markdown(f"[{name}]({link})")  # Render each URL as a clickable link in its own column
+
 
     # 1. File Upload
     uploaded_files = st.file_uploader("Upload CSV files", accept_multiple_files=True, type="csv")
