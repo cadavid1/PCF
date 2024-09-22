@@ -5,15 +5,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import scipy.stats as stats
 
-# Define the URLs
-urls = {
-    "1-Star": "https://chatgpt.com/g/g-HbhbW46u4-1-star-mcc",
-    "2-Star": "https://chatgpt.com/g/g-0X9y54WjG-2-star-mcc",
-    "3-Star": "https://chatgpt.com/g/g-HFZZLEA11-3-star-mcc",
-    "4-Star": "https://chatgpt.com/g/g-bOmqZIWV3-4-star-mcc",
-    "5-Star": "https://chatgpt.com/g/g-M7qDGNCIa-5-star-mcc"
-}
-
 # App configuration
 st.set_page_config(page_title="Sonaura Demo App", layout="wide")
 
@@ -23,17 +14,15 @@ def calculate_confidence_interval(data, confidence=0.99):
     interval = sem * stats.t.ppf((1 + confidence) / 2., len(data)-1)
     return mean - interval, mean + interval
 
+def perform_t_test(data1, data2):
+    """ Perform two-sample t-test """
+    t_stat, p_value = stats.ttest_ind(data1, data2, equal_var=False, nan_policy='omit')
+    return t_stat, p_value
+
 # Streamlit Application
 def main():
     st.title("PCA Data Analysis and Visualization Tool")
     st.text("By David Pearl and Matthew Murphy")
-
-     # Display URLs in columns
-    cols = st.columns(5)  # Create 5 equal-width columns for 5 URLs
-    for i, (name, link) in enumerate(urls.items()):
-        with cols[i]:
-            st.markdown(f"[{name}]({link})")  # Render each URL as a clickable link in its own column
-
 
     # 1. File Upload
     uploaded_files = st.file_uploader("Upload CSV files", accept_multiple_files=True, type="csv")
@@ -148,7 +137,33 @@ def main():
                 category_stats_df = pd.DataFrame(category_stats)
                 st.table(category_stats_df)
 
-        # 5. 2D Scatter Plot with Toggle (if applicable)
+        # 5. Perform Statistical Significance Tests (T-test)
+        st.write("## Statistical Significance Testing (T-Test)")
+
+        # Select categories for comparison
+        if len(categories) > 1:
+            category_1 = st.selectbox("Select first category for comparison", categories, key='cat1')
+            category_2 = st.selectbox("Select second category for comparison", categories, key='cat2')
+
+            # Select numerical column for comparison
+            col_for_ttest = st.selectbox("Select column for t-test", numerical_columns, key='ttest_col')
+
+            # Extract data for the selected categories
+            data_cat1 = combined_df[combined_df['Category'] == category_1][col_for_ttest].dropna()
+            data_cat2 = combined_df[combined_df['Category'] == category_2][col_for_ttest].dropna()
+
+            if not data_cat1.empty and not data_cat2.empty:
+                t_stat, p_value = perform_t_test(data_cat1, data_cat2)
+                st.write(f"T-statistic: {t_stat:.4f}")
+                st.write(f"P-value: {p_value:.4f}")
+
+                # Display result of significance test
+                if p_value < 0.05:
+                    st.write(f"Result: The difference in {col_for_ttest} between {category_1} and {category_2} is statistically significant.")
+                else:
+                    st.write(f"Result: No significant difference in {col_for_ttest} between {category_1} and {category_2}.")
+
+        # 6. 2D Scatter Plot with Toggle (if applicable)
         if len(numerical_columns) >= 2:
             st.write("## 2D Scatter Plot")
             x_col_2d = st.selectbox("Select X axis for 2D scatter plot", numerical_columns, key='2d_x')
@@ -178,7 +193,7 @@ def main():
 
             st.plotly_chart(fig_2d)
 
-        # 6. 3D Scatter Plot (if applicable)
+        # 7. 3D Scatter Plot (if applicable)
         if len(numerical_columns) >= 3:
             st.write("## 3D Scatter Plot")
             x_col = st.selectbox("Select X axis for 3D scatter plot", numerical_columns, key='3d_x')
