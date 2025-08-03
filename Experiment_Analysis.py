@@ -12,7 +12,7 @@ from patsy import dmatrix  # For spline modeling
 
 # App configuration
 st.set_page_config(
-    page_title="PCA Data Analysis and Visualization Tool",
+    page_title="PCF Data Analysis and Visualization Tool",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -553,3 +553,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
